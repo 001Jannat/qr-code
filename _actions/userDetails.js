@@ -1,13 +1,21 @@
-"use server"
-import User from "@/models/userModel";
-
-export async function getUserDetails() {
-    const id = "Zgri0c4TyicD04u5q3Tbc1ozkwL2"; 
+"use server";
+ 
+import mongoose from "mongoose";
+import connectDB from "@/app/database";
+ 
+export async function getUserDetails(id) {
+    // const id = "Zgri0c4TyicD04u5q3Tbc1ozkwL2";
+ 
     try {
-        const user = await User.findOne({ _id: id });
+        const user = await mongoose.connection.db
+            .collection("users")
+            .findOne({ _id: id });
+ 
         console.log("user", user);
         return user;
     } catch (error) {
         console.error("Error fetching user details:", error);
+        return null;
     }
 }
+ 
