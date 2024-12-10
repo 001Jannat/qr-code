@@ -1,89 +1,121 @@
 'use client';
+
 import React, { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  StreamVideo,
+  StreamTheme,
+  StreamCall,
+  SpeakerLayout,
+  CallControls,
+  StreamVideoClient,
+} from '@stream-io/video-react-sdk';
+import '@stream-io/video-react-sdk/dist/css/styles.css';
 import { getUserDetails } from '@/_actions/userDetails';
-import { StreamVideo, StreamTheme, StreamCall, SpeakerLayout, CallControls, StreamVideoClient } from "@stream-io/video-react-sdk";
-import "@stream-io/video-react-sdk/dist/css/styles.css";
+import { setUserDetails } from '@/store/userSlice';
+import { generateToken } from '@/_actions/stream.actions';
 
-export default function SessionDetailPage({ sessionDetails }) {
-    const [userDetails, setUserDetails] = useState(null);
-    const [client, setClient] = useState(null);
-    const [call, setCall] = useState(null);
-    const [showDetails, setShowDetails] = useState(true); 
+const API_KEY = process.env.NEXT_PUBLIC_STREAM_API_KEY;
 
-    useEffect(() => {
-        const fetchUserDetails = async () => {
-            try {
-                const user = await getUserDetails(sessionDetails.userId);
-                setUserDetails(user);
-            } catch (error) {
-                console.error("Error fetching user details:", error);
-            }
-        };
-        fetchUserDetails();
-    }, [sessionDetails]);
+const SessionDetailPage = ({ sessionDetails }) => {
+  const [call, setCall] = useState(null);
+  const [client, setClient] = useState(null);
+  const [showDetails, setShowDetails] = useState(true);
 
-    const handleMeetingClick = async () => {
-        setShowDetails(false); 
-        const apiKey = "mmhfdzb5evj2";
-        const user_id = sessionDetails.userId;
-        const tokenProvider = async () => {
-            const { token } = await fetch(
-                `https://pronto.getstream.io/api/auth/create-token?api_key=${apiKey}&user_id=${user_id}`
-            ).then((res) => res.json());
-            return token;
-        };
+  const dispatch = useDispatch();
+  const userDetails = useSelector((state) => state?.user?.userDetails);
 
-        const myClient = new StreamVideoClient({ apiKey, user: { id: user_id ,name:userDetails?.fullName}, tokenProvider });
-        setClient(myClient);
-
-        const myCall = myClient.call("default", sessionDetails.sessionId);
-        await myCall.join({ create: true });
-        setCall(myCall);
+  useEffect(() => {
+    const fetchUserDetails = async () => {
+      try {
+        const user = await getUserDetails(sessionDetails.userId);
+        const updatedUser = {
+            ...user,
+            createdAt: user.createdAt instanceof Date ? user.createdAt.toISOString() : user.createdAt,
+        }; 
+        setUserDetails(updatedUser);
+        dispatch(setUserDetails(updatedUser));
+        
+      } catch (error) {
+        console.error('Error fetching user details:', error);
+      }
     };
+    fetchUserDetails();
+  }, [sessionDetails.userId, dispatch]);
 
-    if (!userDetails) return <p>Loading user details...</p>;
+  const handleMeetingClick = async () => {
+    if (!API_KEY) {
+      console.error('Stream API key is missing.');
+      return;
+    }
 
-    return (
+    try {
+      const token = await generateToken(userDetails?._id);
+
+      const videoClient = new StreamVideoClient({
+        apiKey: API_KEY,
+        user: {
+          id: userDetails?._id,
+          name: userDetails?.fullName,
+        },
+        token,
+      });
+
+      const videoCall = videoClient.call('default', sessionDetails.sessionId);
+      await videoCall.join({ create: true });
+      setCall(videoCall);
+      setClient(videoClient);
+      setShowDetails(false);
+    } catch (error) {
+      console.error('Error initializing the video call:', error);
+    }
+  };
+
+  if (!userDetails) return <p>Loading user details...</p>;
+
+  return (
+    <div>
+      {showDetails && (
         <div>
-            {showDetails && (
-                <div>
-                    <h2>Session Details</h2>
-                    <p>Session ID: {sessionDetails.sessionId}</p>
-                    <p>User ID: {sessionDetails.userId}</p>
-                    <p>Status: Logged In</p>
+          <h2>Session Details</h2>
+          <p>Session ID: {sessionDetails.sessionId}</p>
+          <p>User ID: {sessionDetails.userId}</p>
+          <p>Status: Logged In</p>
 
-                    <h3>User Details</h3>
-                    <p><strong>Full Name:</strong> {userDetails?.fullName}</p>
-                    <p><strong>Email:</strong> {userDetails.email}</p>
-                    <p><strong>Phone Number:</strong> {userDetails.phoneNumber}</p>
+          <h3>User Details</h3>
+          <p><strong>Full Name:</strong> {userDetails?.fullName}</p>
+          <p><strong>Email:</strong> {userDetails?.email}</p>
+          <p><strong>Phone Number:</strong> {userDetails?.phoneNumber}</p>
 
-                    <button
-                        onClick={handleMeetingClick}
-                        style={{
-                            marginTop: '20px',
-                            padding: '10px 20px',
-                            backgroundColor: '#007bff',
-                            color: '#fff',
-                            border: 'none',
-                            borderRadius: '5px',
-                            cursor: 'pointer',
-                        }}
-                    >
-                        Start Meeting
-                    </button>
-                </div>
-            )}
-
-            {call && client && (
-                <StreamVideo client={client}>
-                    <StreamTheme>
-                        <StreamCall call={call}>
-                            <SpeakerLayout />
-                            <CallControls />
-                        </StreamCall>
-                    </StreamTheme>
-                </StreamVideo>
-            )}
+          <button
+            onClick={handleMeetingClick}
+            style={{
+              marginTop: '20px',
+              padding: '10px 20px',
+              backgroundColor: '#007bff',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '5px',
+              cursor: 'pointer',
+            }}
+          >
+            Start Meeting
+          </button>
         </div>
-    );
-}
+      )}
+
+      {call && client && (
+        <StreamVideo client={client}>
+          <StreamTheme>
+            <StreamCall call={call}>
+              <SpeakerLayout />
+              <CallControls />
+            </StreamCall>
+          </StreamTheme>
+        </StreamVideo>
+      )}
+    </div>
+  );
+};
+
+export default SessionDetailPage;

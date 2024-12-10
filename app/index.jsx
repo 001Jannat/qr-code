@@ -7,7 +7,6 @@ if (rootElement) {
   const root = ReactDOM.createRoot(rootElement);
   root.render(
     <React.StrictMode>
-        hii jannat 
       <Home />
     </React.StrictMode>
   );
