@@ -19,3 +19,11 @@ body {
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
 }
+.my-theme-overrides {
+  font-family: sans-serif;
+  color: white;
+}
+
+.my-theme-overrides .str-video__speaker-layout__wrapper {
+  color: white;
+}
