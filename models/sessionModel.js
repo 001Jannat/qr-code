@@ -12,6 +12,10 @@ const SessionSchema = new mongoose.Schema({
     type: String,
     default: null,
   },
+  trainingId:{
+    type: String,
+    default: null,
+  },
   loggedIn: {
     type: Boolean,
     default: false,
