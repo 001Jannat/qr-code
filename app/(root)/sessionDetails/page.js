@@ -15,6 +15,7 @@ import { getUserDetails } from '@/_actions/userDetails';
 import { setUserDetails } from '@/store/userSlice';
 import { generateToken } from '@/_actions/stream.actions';
 import { updateMeeting } from '@/_actions/updateMeeting';
+import { getmeetingLink } from '@/_actions/findMeetingId';
 
 const API_KEY = process.env.NEXT_PUBLIC_STREAM_API_KEY;
 
@@ -56,7 +57,7 @@ const SessionDetailPage = ({ sessionDetails }) => {
 
     try {
       const token = await generateToken(userDetails?._id);
- console.log("token", token);
+      console.log("token", token);
       const videoClient = new StreamVideoClient({
         apiKey: API_KEY,
         user: {
@@ -67,7 +68,7 @@ const SessionDetailPage = ({ sessionDetails }) => {
       });
 
       const meetingId = `${sessionDetails?.trainingId}_${Math.random().toString(36).substring(2, 15)}`;
- console.log("meetingId", meetingId);
+      console.log("meetingId", meetingId);
       const videoCall = videoClient.call('default', meetingId);
       await videoCall.join({ create: true });
       setCall(videoCall);
@@ -88,7 +89,49 @@ const SessionDetailPage = ({ sessionDetails }) => {
   };
 
   const handleJoinMeetingClick = async () => {
-   console.log("joinig meeting");
+    console.log("joinig meeting");
+    try {
+      // Fetch meeting link using the getmeetingLink API
+      const meetingLink = await getmeetingLink(sessionDetails?.trainingId);
+
+      if (!meetingLink) {
+
+        console.error("No meeting link found for this training.");
+        return;
+      }
+
+      console.log("Meeting link fetched:", meetingLink);
+      if (!API_KEY) {
+        console.error("Stream API key is missing.");
+        return;
+      }
+
+      // Generate user token for joining the meeting
+      const token = await generateToken(userDetails?._id);
+      console.log("Token generated:", token);
+
+      // Initialize Stream Video client
+      const videoClient = new StreamVideoClient({
+        apiKey: API_KEY,
+        user: {
+          id: userDetails?._id,
+          name: userDetails?.fullName,
+        },
+        token,
+      });
+
+      // Join the meeting using the fetched meetingLink
+      const videoCall = videoClient.call('default', meetingLink);
+      await videoCall.join();
+      setCall(videoCall);
+      setClient(videoClient);
+      setShowDetails(false);
+      console.log("after joining meeting", videoCall);
+      console.log("after joining meeting link ", meetingLink);
+      console.log("Successfully joined the meeting:", videoCall);
+    } catch (error) {
+      console.error("Error joining the meeting:", error);
+    }
   };
 
   if (!userDetails) return <p>Loading user details...</p>;
