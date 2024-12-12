@@ -18,6 +18,7 @@ export async function checkLoginStatus(sessionId) {
             return {
                 sessionId: session.sessionId,
                 userId: session.userId,
+                trainingId: session.trainingId,
                 loggedIn: session.loggedIn,
             };
         } else {

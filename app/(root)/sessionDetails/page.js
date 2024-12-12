@@ -14,6 +14,7 @@ import '@stream-io/video-react-sdk/dist/css/styles.css';
 import { getUserDetails } from '@/_actions/userDetails';
 import { setUserDetails } from '@/store/userSlice';
 import { generateToken } from '@/_actions/stream.actions';
+import { updateMeeting } from '@/_actions/updateMeeting';
 
 const API_KEY = process.env.NEXT_PUBLIC_STREAM_API_KEY;
 
@@ -65,11 +66,22 @@ const SessionDetailPage = ({ sessionDetails }) => {
         token,
       });
 
-      const videoCall = videoClient.call('default', sessionId);
+      const meetingId = `${sessionDetails?.trainingId}_${Math.random().toString(36).substring(2, 15)}`;
+ console.log("meetingId", meetingId);
+      const videoCall = videoClient.call('default', meetingId);
       await videoCall.join({ create: true });
       setCall(videoCall);
       setClient(videoClient);
       setShowDetails(false);
+      console.log('Video call initialized:', videoCall);
+      console.log("after calling meeting", meetingId);
+
+      const updatetrainings = await updateMeeting(sessionDetails?.trainingId, meetingId);
+      if (updatetrainings) {
+        console.log("Meeting link updated successfully:", updatetrainings);
+      } else {
+        console.error("Failed to update the meeting link.");
+      }
     } catch (error) {
       console.error('Error initializing the video call:', error);
     }
