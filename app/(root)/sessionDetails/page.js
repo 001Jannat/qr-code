@@ -24,6 +24,10 @@ const generateRandomSessionId = () => {
 };
 
 const SessionDetailPage = ({ sessionDetails }) => {
+  if (!sessionDetails || !sessionDetails.userId) {
+    return <p>Loading session details...</p>;
+  }
+  
   const [call, setCall] = useState(null);
   const [client, setClient] = useState(null);
   const [showDetails, setShowDetails] = useState(true);
@@ -32,7 +36,13 @@ const SessionDetailPage = ({ sessionDetails }) => {
   const dispatch = useDispatch();
   const userDetails = useSelector((state) => state?.user?.userDetails);
 
+
   useEffect(() => {
+    if (!sessionDetails?.userId) {
+      console.warn('Session details or userId is undefined. Skipping fetchUserDetails.');
+      return;
+    }
+  
     const fetchUserDetails = async () => {
       try {
         const user = await getUserDetails(sessionDetails.userId);
@@ -48,6 +58,15 @@ const SessionDetailPage = ({ sessionDetails }) => {
     };
     fetchUserDetails();
   }, [sessionDetails.userId, dispatch]);
+
+  if (!sessionDetails?.userId) {
+    return <p>Loading session details...</p>;
+  }
+
+  if (!userDetails) {
+    return <p>Loading user details...</p>;
+  }
+
   const handleMeetingClick = async () => {
     if (!API_KEY) {
       console.error('Stream API key is missing.');
