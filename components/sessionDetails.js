@@ -147,7 +147,7 @@ const SessionDetailPage = ({ sessionDetails }) => {
         console.log("Successfully joined the meeting:", videoCall);
       } catch (error) {
         console.error("Error joining the meeting:", error);
-        setTimeout(fetchMeetingLinkAndJoin, 5000); // Retry after 5 seconds on error
+        setTimeout(fetchMeetingLinkAndJoin, 5000); 
       }
     };
 

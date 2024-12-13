@@ -4,7 +4,8 @@ import { getSession } from "@/_actions/sessionAction";
 import { checkLoginStatus } from "@/_actions/checkLoginStatus"; 
 import QRCode from "qrcode";
 import { useEffect, useState } from "react";
-import SessionDetailPage from "../sessionDetails/page"; 
+import SessionDetailPage from "./sessionDetails";
+
 
 export default function QRCodePage() {
     const [qrCodeData, setQrCodeData] = useState(""); 

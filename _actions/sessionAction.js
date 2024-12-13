@@ -2,7 +2,7 @@
 //sessionAction.js
 import Session from "@/models/sessionModel"
 import { v4 as uuidv4 } from 'uuid';
-import connectDB from "@/app/database";
+import connectDB from "@/app/providers/database";
 
 export async function getSession() {
     await connectDB();

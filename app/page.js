@@ -1,9 +1,13 @@
+import QRCodePage from '@/components/qrCode'
 import React from 'react'
+
 
 const Home = () => {
   return (
-    <div>
-      Hompage
+    <div >
+
+      <QRCodePage />
+
     </div>
   )
 }

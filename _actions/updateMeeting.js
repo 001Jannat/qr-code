@@ -1,7 +1,7 @@
 "use server";
  
 import mongoose from "mongoose";
-import connectDB from "@/app/database";
+import connectDB from "@/app/providers/database";
  
 export async function updateMeeting(trainingId,meetingLink) {
  

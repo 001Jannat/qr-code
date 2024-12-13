@@ -1,7 +1,7 @@
 'use server'
 
 import Session from "@/models/sessionModel";
-import connectDB from "@/app/database";
+import connectDB from "@/app/providers/database";
 
 export async function checkLoginStatus(sessionId) {
     await connectDB();
