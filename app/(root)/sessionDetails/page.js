@@ -28,7 +28,7 @@ const SessionDetailPage = ({ sessionDetails }) => {
   const [client, setClient] = useState(null);
   const [showDetails, setShowDetails] = useState(true);
   const [sessionId, setSessionId] = useState(sessionDetails?.sessionId || generateRandomSessionId());
-  console.log("sessionDetails", sessionDetails);
+  const [waitingForMeeting, setWaitingForMeeting] = useState(false);
   const dispatch = useDispatch();
   const userDetails = useSelector((state) => state?.user?.userDetails);
 
@@ -48,7 +48,6 @@ const SessionDetailPage = ({ sessionDetails }) => {
     };
     fetchUserDetails();
   }, [sessionDetails.userId, dispatch]);
-
   const handleMeetingClick = async () => {
     if (!API_KEY) {
       console.error('Stream API key is missing.');
@@ -89,49 +88,51 @@ const SessionDetailPage = ({ sessionDetails }) => {
   };
 
   const handleJoinMeetingClick = async () => {
-    console.log("joinig meeting");
-    try {
-      // Fetch meeting link using the getmeetingLink API
-      const meetingLink = await getmeetingLink(sessionDetails?.trainingId);
+    setWaitingForMeeting(true);
 
-      if (!meetingLink) {
+    const fetchMeetingLinkAndJoin = async () => {
+      try {
+        const meetingLink = await getmeetingLink(sessionDetails?.trainingId);
 
-        console.error("No meeting link found for this training.");
-        return;
+        if (!meetingLink) {
+          console.log('No meeting link available yet. Retrying...');
+          setTimeout(fetchMeetingLinkAndJoin, 5000); 
+          return;
+        }
+
+        console.log("Meeting link fetched:", meetingLink);
+
+        if (!API_KEY) {
+          console.error("Stream API key is missing.");
+          return;
+        }
+
+        const token = await generateToken(userDetails?._id);
+        console.log("Token generated:", token);
+
+        const videoClient = new StreamVideoClient({
+          apiKey: API_KEY,
+          user: {
+            id: userDetails?._id,
+            name: userDetails?.fullName,
+          },
+          token,
+        });
+
+        const videoCall = videoClient.call('default', meetingLink);
+        await videoCall.join();
+        setCall(videoCall);
+        setClient(videoClient);
+        setShowDetails(false);
+        setWaitingForMeeting(false);
+        console.log("Successfully joined the meeting:", videoCall);
+      } catch (error) {
+        console.error("Error joining the meeting:", error);
+        setTimeout(fetchMeetingLinkAndJoin, 5000); // Retry after 5 seconds on error
       }
+    };
 
-      console.log("Meeting link fetched:", meetingLink);
-      if (!API_KEY) {
-        console.error("Stream API key is missing.");
-        return;
-      }
-
-      // Generate user token for joining the meeting
-      const token = await generateToken(userDetails?._id);
-      console.log("Token generated:", token);
-
-      // Initialize Stream Video client
-      const videoClient = new StreamVideoClient({
-        apiKey: API_KEY,
-        user: {
-          id: userDetails?._id,
-          name: userDetails?.fullName,
-        },
-        token,
-      });
-
-      // Join the meeting using the fetched meetingLink
-      const videoCall = videoClient.call('default', meetingLink);
-      await videoCall.join();
-      setCall(videoCall);
-      setClient(videoClient);
-      setShowDetails(false);
-      console.log("after joining meeting", videoCall);
-      console.log("after joining meeting link ", meetingLink);
-      console.log("Successfully joined the meeting:", videoCall);
-    } catch (error) {
-      console.error("Error joining the meeting:", error);
-    }
+    fetchMeetingLinkAndJoin();
   };
 
   if (!userDetails) return <p>Loading user details...</p>;
@@ -155,7 +156,7 @@ const SessionDetailPage = ({ sessionDetails }) => {
             <button
               onClick={handleMeetingClick}
               style={{
-                marginTop: '20px',
+                insetBlockStart: '20px',
                 padding: '10px 20px',
                 backgroundColor: '#007bff',
                 color: '#fff',
@@ -164,13 +165,13 @@ const SessionDetailPage = ({ sessionDetails }) => {
                 cursor: 'pointer',
               }}
             >
-              create Meeting
+              Create Meeting
             </button>
           ) : (
             <button
               onClick={handleJoinMeetingClick}
               style={{
-                marginTop: '20px',
+                insetBlockStart: '20px',
                 padding: '10px 20px',
                 backgroundColor: '#28a745',
                 color: '#fff',
@@ -182,6 +183,12 @@ const SessionDetailPage = ({ sessionDetails }) => {
               Join Meeting
             </button>
           )}
+        </div>
+      )}
+
+      {waitingForMeeting && (
+        <div>
+          <p>Waiting for the meeting to start. Please wait...</p>
         </div>
       )}
 
