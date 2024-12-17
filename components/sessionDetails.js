@@ -17,6 +17,7 @@ import { generateToken } from '@/_actions/stream.actions';
 import { updateMeeting } from '@/_actions/updateMeeting';
 import { getmeetingLink } from '@/_actions/findMeetingId';
 import { userAttendance } from '@/_actions/userAttendance';
+import MeetingRoom from './meetingRoom';
 
 const API_KEY = process.env.NEXT_PUBLIC_STREAM_API_KEY;
 
@@ -192,8 +193,9 @@ const SessionDetailPage = ({ sessionDetails }) => {
         <StreamVideo client={client}>
           <StreamTheme>
             <StreamCall call={call}>
-              <SpeakerLayout />
-              <CallControls />
+              {/* <SpeakerLayout />
+              <CallControls /> */}
+              <MeetingRoom />
             </StreamCall>
           </StreamTheme>
         </StreamVideo>

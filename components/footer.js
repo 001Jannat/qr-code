@@ -1,5 +1,5 @@
 const Footer = () => (
-    <footer className="mt-auto text-black text-sm py-4 flex items-center justify-center space-x-2">
+    <footer className="mt-auto text-black text-sm py-12 flex items-center justify-center space-x-2">
         <span>Your personal details are safe and encrypted.</span>
         <img
             src="/lawazia.png"
