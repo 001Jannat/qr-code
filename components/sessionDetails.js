@@ -16,6 +16,7 @@ import { setUserDetails } from '@/store/userSlice';
 import { generateToken } from '@/_actions/stream.actions';
 import { updateMeeting } from '@/_actions/updateMeeting';
 import { getmeetingLink } from '@/_actions/findMeetingId';
+import { userAttendance } from '@/_actions/userAttendance';
 
 const API_KEY = process.env.NEXT_PUBLIC_STREAM_API_KEY;
 
@@ -111,6 +112,18 @@ const SessionDetailPage = ({ sessionDetails }) => {
 
     const fetchMeetingLinkAndJoin = async () => {
       try {
+        const attendanceResponse = await userAttendance({
+          userId: userDetails?._id,
+          fullName: userDetails?.fullName,
+          trainingId: sessionDetails?.trainingId,
+        });
+        if (!attendanceResponse.success) {
+          console.error('Failed to record attendance:', attendanceResponse.message);
+          setWaitingForMeeting(false);
+          return;
+        }
+
+    
         const meetingLink = await getmeetingLink(sessionDetails?.trainingId);
 
         if (!meetingLink) {
@@ -171,34 +184,12 @@ const SessionDetailPage = ({ sessionDetails }) => {
           <p><strong>Email:</strong> {userDetails?.email}</p>
           <p><strong>Phone Number:</strong> {userDetails?.phoneNumber}</p>
 
-          {userDetails?.admin == 'true' ? (
-            <button
-              onClick={handleMeetingClick}
-              style={{
-                insetBlockStart: '20px',
-                padding: '10px 20px',
-                backgroundColor: '#007bff',
-                color: '#fff',
-                border: 'none',
-                borderRadius: '5px',
-                cursor: 'pointer',
-              }}
-            >
+          {userDetails?.admin === 'true' ? (
+            <button onClick={handleMeetingClick} style={buttonStyle('#007bff')}>
               Create Meeting
             </button>
           ) : (
-            <button
-              onClick={handleJoinMeetingClick}
-              style={{
-                insetBlockStart: '20px',
-                padding: '10px 20px',
-                backgroundColor: '#28a745',
-                color: '#fff',
-                border: 'none',
-                borderRadius: '5px',
-                cursor: 'pointer',
-              }}
-            >
+            <button onClick={handleJoinMeetingClick} style={buttonStyle('#28a745')}>
               Join Meeting
             </button>
           )}
@@ -224,5 +215,13 @@ const SessionDetailPage = ({ sessionDetails }) => {
     </div>
   );
 };
+const buttonStyle = (bgColor) => ({
+  padding: '10px 20px',
+  backgroundColor: bgColor,
+  color: '#fff',
+  border: 'none',
+  borderRadius: '5px',
+  cursor: 'pointer',
+});
 
 export default SessionDetailPage;
