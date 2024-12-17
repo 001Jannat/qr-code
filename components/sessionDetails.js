@@ -1,13 +1,10 @@
-'use client';
-
+"use client";
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   StreamVideo,
   StreamTheme,
   StreamCall,
-  SpeakerLayout,
-  CallControls,
   StreamVideoClient,
 } from '@stream-io/video-react-sdk';
 import '@stream-io/video-react-sdk/dist/css/styles.css';
@@ -26,10 +23,6 @@ const generateRandomSessionId = () => {
 };
 
 const SessionDetailPage = ({ sessionDetails }) => {
-  if (!sessionDetails || !sessionDetails.userId) {
-    return <p>Loading session details...</p>;
-  }
-
   const [call, setCall] = useState(null);
   const [client, setClient] = useState(null);
   const [showDetails, setShowDetails] = useState(true);
@@ -40,10 +33,14 @@ const SessionDetailPage = ({ sessionDetails }) => {
   const userDetails = useSelector((state) => state?.user?.userDetails);
 
   useEffect(() => {
-    if (!sessionDetails?.userId) {
-      console.warn('Session details or userId is undefined. Skipping fetchUserDetails.');
-      return;
-    }
+    const fetchMeetingLink = async () => {
+      try {
+        const link = await getmeetingLink(sessionDetails?.trainingId);
+        setMeetingLink(link);
+      } catch (error) {
+        console.error('Error fetching meeting link:', error);
+      }
+    };
 
     const fetchUserDetails = async () => {
       try {
@@ -54,32 +51,39 @@ const SessionDetailPage = ({ sessionDetails }) => {
         };
         setUserDetails(updatedUser);
         dispatch(setUserDetails(updatedUser));
-        dispatch(setUserDetails(updatedUser));
       } catch (error) {
         console.error('Error fetching user details:', error);
-      }
-    };
-
-    const fetchMeetingLink = async () => {
-      try {
-        const link = await getmeetingLink(sessionDetails?.trainingId);
-        setMeetingLink(link); 
-      } catch (error) {
-        console.error('Error fetching meeting link:', error);
       }
     };
 
     fetchUserDetails();
     fetchMeetingLink();
   }, [sessionDetails?.userId, sessionDetails?.trainingId, dispatch]);
-  if (!sessionDetails?.userId) {
-    return <p>Loading session details...</p>;
-  }
 
-  if (!userDetails) {
-    return <p>Loading user details...</p>;
-  }
+  useEffect(() => {
+    let interval;
 
+    if (!meetingLink) {
+      interval = setInterval(async () => {
+        try {
+          const link = await getmeetingLink(sessionDetails?.trainingId);
+          if (link) {
+            setMeetingLink(link);
+            clearInterval(interval);
+            handleJoinMeetingClick(); 
+          }
+        } catch (error) {
+          console.error('Error fetching meeting link:', error);
+        }
+      }, 2000); 
+    }
+
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
+  }, [meetingLink, sessionDetails?.trainingId]);
 
   const handleMeetingClick = async () => {
     if (!API_KEY) {
@@ -105,7 +109,7 @@ const SessionDetailPage = ({ sessionDetails }) => {
       setCall(videoCall);
       setClient(videoClient);
       setShowDetails(false);
-      setMeetingLink(meetingId); 
+      setMeetingLink(meetingId);
 
       const updatetrainings = await updateMeeting(sessionDetails?.trainingId, meetingId);
       if (updatetrainings) {
@@ -119,6 +123,12 @@ const SessionDetailPage = ({ sessionDetails }) => {
   };
 
   const handleJoinMeetingClick = async () => {
+    if (!meetingLink) {
+      console.error('Meeting link is still missing.');
+      setWaitingForMeeting(false);
+      return;
+    }
+
     setWaitingForMeeting(true);
 
     try {
@@ -151,50 +161,50 @@ const SessionDetailPage = ({ sessionDetails }) => {
       setWaitingForMeeting(false);
     } catch (error) {
       console.error('Error joining the meeting:', error);
+      setWaitingForMeeting(false);
     }
   };
 
-
-  
   if (!userDetails) return <p>Loading user details...</p>;
 
   return (
     <div>
       {showDetails && (
-        <div>
-          <h2>Session Details</h2>
-          <p>Session ID: {sessionId}</p>
-          <p>User ID: {sessionDetails.userId}</p>
-          <p>Training ID: {sessionDetails?.trainingId}</p>
-          <p>Status: Logged In</p>
-
-          <h3>User Details</h3>
-          <p><strong>Full Name:</strong> {userDetails?.fullName}</p>
-          <p><strong>Email:</strong> {userDetails?.email}</p>
-          <p><strong>Phone Number:</strong> {userDetails?.phoneNumber}</p>
+        <>
+          <div className="w-4/5 h-[500px] mx-auto border border-gray-300 mt-10 flex flex-col justify-center items-center text-center rounded-md">
+            <h3 className="text-xl font-bold mb-5">{userDetails?.fullName}</h3>
+          </div>
 
           {meetingLink ? (
-            <button onClick={handleJoinMeetingClick} style={buttonStyle('#28a745')}>
-              Join Meeting
-            </button>
+            <div className="flex justify-center items-center mt-5">
+              <button 
+                onClick={handleJoinMeetingClick} 
+                className="bg-green-500 text-white py-2 px-6 rounded-md cursor-pointer"
+              >
+                Join Meeting
+              </button>
+            </div>
           ) : userDetails?.admin === 'true' ? (
-            <button onClick={handleMeetingClick} style={buttonStyle('#007bff')}>
-              Create Meeting
-            </button>
+            <div className="flex justify-center items-center mt-5">
+              <button 
+                onClick={handleMeetingClick} 
+                className="bg-blue-500 text-white py-2 px-6 rounded-md cursor-pointer"
+              >
+                Create Meeting
+              </button>
+            </div>
           ) : (
-            <p>Waiting for the admin to create the meeting...</p>
+            <div className="flex justify-center items-center mt-5">Waiting for the admin to create the meeting...</div>
           )}
-        </div>
+        </>
       )}
 
-      {waitingForMeeting && <p>Waiting for the meeting to start. Please wait...</p>}
+      {waitingForMeeting && <div className='flex justify-center items-center mt-5'>Waiting for the meeting to start. Please wait...</div>}
 
       {call && client && (
         <StreamVideo client={client}>
           <StreamTheme>
             <StreamCall call={call}>
-              {/* <SpeakerLayout />
-              <CallControls /> */}
               <MeetingRoom />
             </StreamCall>
           </StreamTheme>
@@ -203,14 +213,5 @@ const SessionDetailPage = ({ sessionDetails }) => {
     </div>
   );
 };
-
-const buttonStyle = (bgColor) => ({
-  padding: '10px 20px',
-  backgroundColor: bgColor,
-  color: '#fff',
-  border: 'none',
-  borderRadius: '5px',
-  cursor: 'pointer',
-});
 
 export default SessionDetailPage;
