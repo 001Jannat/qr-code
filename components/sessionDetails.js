@@ -28,22 +28,22 @@ const SessionDetailPage = ({ sessionDetails }) => {
   if (!sessionDetails || !sessionDetails.userId) {
     return <p>Loading session details...</p>;
   }
-  
+
   const [call, setCall] = useState(null);
   const [client, setClient] = useState(null);
   const [showDetails, setShowDetails] = useState(true);
   const [sessionId, setSessionId] = useState(sessionDetails?.sessionId || generateRandomSessionId());
+  const [meetingLink, setMeetingLink] = useState(null);
   const [waitingForMeeting, setWaitingForMeeting] = useState(false);
   const dispatch = useDispatch();
   const userDetails = useSelector((state) => state?.user?.userDetails);
-
 
   useEffect(() => {
     if (!sessionDetails?.userId) {
       console.warn('Session details or userId is undefined. Skipping fetchUserDetails.');
       return;
     }
-  
+
     const fetchUserDetails = async () => {
       try {
         const user = await getUserDetails(sessionDetails.userId);
@@ -53,13 +53,24 @@ const SessionDetailPage = ({ sessionDetails }) => {
         };
         setUserDetails(updatedUser);
         dispatch(setUserDetails(updatedUser));
+        dispatch(setUserDetails(updatedUser));
       } catch (error) {
         console.error('Error fetching user details:', error);
       }
     };
-    fetchUserDetails();
-  }, [sessionDetails.userId, dispatch]);
 
+    const fetchMeetingLink = async () => {
+      try {
+        const link = await getmeetingLink(sessionDetails?.trainingId);
+        setMeetingLink(link); 
+      } catch (error) {
+        console.error('Error fetching meeting link:', error);
+      }
+    };
+
+    fetchUserDetails();
+    fetchMeetingLink();
+  }, [sessionDetails?.userId, sessionDetails?.trainingId, dispatch]);
   if (!sessionDetails?.userId) {
     return <p>Loading session details...</p>;
   }
@@ -67,6 +78,7 @@ const SessionDetailPage = ({ sessionDetails }) => {
   if (!userDetails) {
     return <p>Loading user details...</p>;
   }
+
 
   const handleMeetingClick = async () => {
     if (!API_KEY) {
@@ -76,7 +88,6 @@ const SessionDetailPage = ({ sessionDetails }) => {
 
     try {
       const token = await generateToken(userDetails?._id);
-      console.log("token", token);
       const videoClient = new StreamVideoClient({
         apiKey: API_KEY,
         user: {
@@ -87,20 +98,19 @@ const SessionDetailPage = ({ sessionDetails }) => {
       });
 
       const meetingId = `${sessionDetails?.trainingId}_${Math.random().toString(36).substring(2, 15)}`;
-      console.log("meetingId", meetingId);
       const videoCall = videoClient.call('default', meetingId);
       await videoCall.join({ create: true });
+
       setCall(videoCall);
       setClient(videoClient);
       setShowDetails(false);
-      console.log('Video call initialized:', videoCall);
-      console.log("after calling meeting", meetingId);
+      setMeetingLink(meetingId); 
 
       const updatetrainings = await updateMeeting(sessionDetails?.trainingId, meetingId);
       if (updatetrainings) {
-        console.log("Meeting link updated successfully:", updatetrainings);
+        console.log('Meeting link updated successfully:', updatetrainings);
       } else {
-        console.error("Failed to update the meeting link.");
+        console.error('Failed to update the meeting link.');
       }
     } catch (error) {
       console.error('Error initializing the video call:', error);
@@ -110,63 +120,41 @@ const SessionDetailPage = ({ sessionDetails }) => {
   const handleJoinMeetingClick = async () => {
     setWaitingForMeeting(true);
 
-    const fetchMeetingLinkAndJoin = async () => {
-      try {
-        const attendanceResponse = await userAttendance({
-          userId: userDetails?._id,
-          fullName: userDetails?.fullName,
-          trainingId: sessionDetails?.trainingId,
-        });
-        if (!attendanceResponse.success) {
-          console.error('Failed to record attendance:', attendanceResponse.message);
-          setWaitingForMeeting(false);
-          return;
-        }
-
-    
-        const meetingLink = await getmeetingLink(sessionDetails?.trainingId);
-
-        if (!meetingLink) {
-          console.log('No meeting link available yet. Retrying...');
-          setTimeout(fetchMeetingLinkAndJoin, 5000); 
-          return;
-        }
-
-        console.log("Meeting link fetched:", meetingLink);
-
-        if (!API_KEY) {
-          console.error("Stream API key is missing.");
-          return;
-        }
-
-        const token = await generateToken(userDetails?._id);
-        console.log("Token generated:", token);
-
-        const videoClient = new StreamVideoClient({
-          apiKey: API_KEY,
-          user: {
-            id: userDetails?._id,
-            name: userDetails?.fullName,
-          },
-          token,
-        });
-
-        const videoCall = videoClient.call('default', meetingLink);
-        await videoCall.join();
-        setCall(videoCall);
-        setClient(videoClient);
-        setShowDetails(false);
+    try {
+      const attendanceResponse = await userAttendance({
+        userId: userDetails?._id,
+        fullName: userDetails?.fullName,
+        trainingId: sessionDetails?.trainingId,
+      });
+      if (!attendanceResponse.success) {
+        console.error('Failed to record attendance:', attendanceResponse.message);
         setWaitingForMeeting(false);
-        console.log("Successfully joined the meeting:", videoCall);
-      } catch (error) {
-        console.error("Error joining the meeting:", error);
-        setTimeout(fetchMeetingLinkAndJoin, 5000); 
+        return;
       }
-    };
 
-    fetchMeetingLinkAndJoin();
+      const token = await generateToken(userDetails?._id);
+      const videoClient = new StreamVideoClient({
+        apiKey: API_KEY,
+        user: {
+          id: userDetails?._id,
+          name: userDetails?.fullName,
+        },
+        token,
+      });
+
+      const videoCall = videoClient.call('default', meetingLink);
+      await videoCall.join();
+      setCall(videoCall);
+      setClient(videoClient);
+      setShowDetails(false);
+      setWaitingForMeeting(false);
+    } catch (error) {
+      console.error('Error joining the meeting:', error);
+    }
   };
 
+
+  
   if (!userDetails) return <p>Loading user details...</p>;
 
   return (
@@ -184,23 +172,21 @@ const SessionDetailPage = ({ sessionDetails }) => {
           <p><strong>Email:</strong> {userDetails?.email}</p>
           <p><strong>Phone Number:</strong> {userDetails?.phoneNumber}</p>
 
-          {userDetails?.admin === 'true' ? (
+          {meetingLink ? (
+            <button onClick={handleJoinMeetingClick} style={buttonStyle('#28a745')}>
+              Join Meeting
+            </button>
+          ) : userDetails?.admin === 'true' ? (
             <button onClick={handleMeetingClick} style={buttonStyle('#007bff')}>
               Create Meeting
             </button>
           ) : (
-            <button onClick={handleJoinMeetingClick} style={buttonStyle('#28a745')}>
-              Join Meeting
-            </button>
+            <p>Waiting for the admin to create the meeting...</p>
           )}
         </div>
       )}
 
-      {waitingForMeeting && (
-        <div>
-          <p>Waiting for the meeting to start. Please wait...</p>
-        </div>
-      )}
+      {waitingForMeeting && <p>Waiting for the meeting to start. Please wait...</p>}
 
       {call && client && (
         <StreamVideo client={client}>
@@ -215,6 +201,7 @@ const SessionDetailPage = ({ sessionDetails }) => {
     </div>
   );
 };
+
 const buttonStyle = (bgColor) => ({
   padding: '10px 20px',
   backgroundColor: bgColor,
