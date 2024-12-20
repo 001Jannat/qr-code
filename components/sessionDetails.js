@@ -72,12 +72,12 @@ const SessionDetailPage = ({ sessionDetails }) => {
           if (link) {
             setMeetingLink(link);
             clearInterval(interval);
-            handleJoinMeetingClick(); 
+            handleJoinMeetingClick();
           }
         } catch (error) {
           console.error('Error fetching meeting link:', error);
         }
-      }, 2000); 
+      }, 2000);
     }
 
     return () => {
@@ -202,10 +202,10 @@ const SessionDetailPage = ({ sessionDetails }) => {
         //   )}
         // </>
         <MeetingSetup
-        userDetails={userDetails}
-        meetingLink={meetingLink}
-        handleJoinMeetingClick={handleJoinMeetingClick}
-        handleMeetingClick={handleMeetingClick}
+          userDetails={userDetails}
+          meetingLink={meetingLink}
+          handleJoinMeetingClick={handleJoinMeetingClick}
+          handleMeetingClick={handleMeetingClick}
         />
       )}
 

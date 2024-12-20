@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from "react";
 import { getSession } from "@/_actions/sessionAction";
-import { checkLoginStatus } from "@/_actions/checkLoginStatus"; 
+import { checkLoginStatus } from "@/_actions/checkLoginStatus";
 import QRCode from "qrcode";
 
 const useQRCodeSession = () => {
@@ -15,10 +15,10 @@ const useQRCodeSession = () => {
         const fetchSessionAndGenerateQR = async () => {
             try {
                 const sessionId = await getSession();
-                const qrCodeURL = await QRCode.toDataURL(sessionId,{
+                const qrCodeURL = await QRCode.toDataURL(sessionId, {
                     color: {
-                        dark: '#0ab39c', 
-                        light: '#ffffff' 
+                        dark: '#0ab39c',
+                        light: '#ffffff'
                     }
                 });
                 setQrCodeData(qrCodeURL);
