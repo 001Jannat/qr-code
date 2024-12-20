@@ -2,7 +2,6 @@ import { useState } from 'react';
 import {
     CallControls,
     CallParticipantsList,
-    CallStatsButton,
     CallingState,
     SpeakerLayout,
     useCallStateHooks,
@@ -17,16 +16,18 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from './ui/dropdown-menu';
+import MeetingExitDark from './meetingExit';
 
 const MeetingRoom = () => {
     const router = useRouter();
     const [layout, setLayout] = useState('speaker-center');
     const [showParticipants, setShowParticipants] = useState(false);
+    const [hasLeft, setHasLeft] = useState(false); 
     const { useCallCallingState, useCallState } = useCallStateHooks();
     const callingState = useCallCallingState();
     const { call } = useCallState();
 
-    if (callingState !== CallingState.JOINED) return <div>Loading...</div>;
+    if (callingState !== CallingState.JOINED) return <div><MeetingExitDark /> </div>;
 
     const participants = Object.values(call?.state?.participants || {});
 
@@ -39,13 +40,13 @@ const MeetingRoom = () => {
 
     // Participants slider layout
     const ParticipantsSlider = () => (
-        <div className="flex w-full space-x-4 overflow-x-auto p-2 bg-[#20242a]">
+        <div className="flex w-full space-x-4 overflow-x-auto p-2 bg-gray-900">
             {participants.map((participant) => (
                 <div
                     key={participant.userId}
                     className="w-32 h-32 flex-shrink-0 rounded-lg bg-gray-700 p-1"
                 >
-                    <div className="h-full w-full rounded-lg bg-black flex items-center justify-center">
+                    <div className="h-full w-full rounded-lg bg-gray-900 flex items-center justify-center">
                         <span className="text-xs text-white text-center">
                             {participant.user?.name || participant.userId}
                         </span>
@@ -55,8 +56,13 @@ const MeetingRoom = () => {
         </div>
     );
 
+
+    if (hasLeft) {
+        return <MeetingExitDark />;
+    }
+
     return (
-        <section className="relative h-screen w-full overflow-hidden pt-4 text-white bg-[#1a1e23]">
+        <section className="relative h-screen w-full overflow-hidden pt-4 text-white bg-gray-900">
             {/* Main Content */}
             <div className="relative flex size-full flex-col items-center justify-center">
                 {/* Main Speaker */}
@@ -65,14 +71,15 @@ const MeetingRoom = () => {
                 </div>
 
                 {/* Participants Slider */}
-                <div className="absolute bottom-0 left-0 w-full bg-[#20242a]">
+                <div className="absolute bottom-0 left-0 w-full bg-gray-900">
                     <ParticipantsSlider />
                 </div>
 
                 {/* Sidebar for Participants List */}
                 <div
-                    className={`fixed top-0 right-0 h-[calc(100vh-84px)] w-[300px] bg-gray-800 p-3 text-white transition-all duration-300 ${showParticipants ? 'translate-x-0' : 'translate-x-full'
-                        }`}
+                    className={`fixed top-0 right-0 h-[calc(100vh-84px)] w-[300px] bg-gray-800 p-3 text-white transition-all duration-300 ${
+                        showParticipants ? 'translate-x-0' : 'translate-x-full'
+                    }`}
                 >
                     <CallParticipantsList onClose={() => setShowParticipants(false)} />
                 </div>
@@ -80,11 +87,11 @@ const MeetingRoom = () => {
 
             {/* Call Controls */}
             <div className="fixed bottom-0 left-1/2 flex -translate-x-1/2 gap-5">
-                <CallControls onLeave={() => router.push('/')} />
+                <CallControls onLeave={() => setHasLeft(true)} />
 
                 <DropdownMenu>
                     <div className="flex items-center">
-                        <DropdownMenuTrigger className="cursor-pointer rounded-2xl bg-[#19232d] px-4 py-2 hover:bg-[#4c535b]">
+                        <DropdownMenuTrigger className="cursor-pointer rounded-2xl bg-gray-900 px-4 py-2 hover:bg-[#4c535b]">
                             <LayoutList size={20} className="text-white" />
                         </DropdownMenuTrigger>
                     </div>
@@ -100,9 +107,8 @@ const MeetingRoom = () => {
                     </DropdownMenuContent>
                 </DropdownMenu>
 
-                {/* <CallStatsButton /> */}
                 <button onClick={() => setShowParticipants((prev) => !prev)}>
-                    <div className="cursor-pointer rounded-2xl bg-[#19232d] px-4 py-2 hover:bg-[#4c535b]">
+                    <div className="cursor-pointer rounded-2xl bg-gray-900 px-4 py-2 hover:bg-[#4c535b]">
                         <Users size={20} className="text-white" />
                     </div>
                 </button>
