@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { Shield } from 'lucide-react'
 import { Button } from './ui/button'
 import { Card } from './ui/card'
+import Footer from './footer'
 
 export default function MeetingExitDark() {
     const [timeLeft, setTimeLeft] = useState(60)
@@ -25,8 +26,13 @@ export default function MeetingExitDark() {
     const progress = ((60 - timeLeft) / 60) * 100
 
     return (
-        <div className="min-h-screen bg-gray-900 p-4 relative text-gray-200">
-            {/* Timer  */}
+        <div
+            className="min-h-screen p-4 relative text-gray-900 flex items-center justify-center"
+            style={{
+                background: 'linear-gradient(135deg, white, #0ab39c)',
+            }}
+        >
+            
             <div className="absolute top-4 left-4 flex items-center gap-3">
                 <div className="relative h-12 w-12">
                     <svg className="w-12 h-12 transform -rotate-90">
@@ -34,7 +40,7 @@ export default function MeetingExitDark() {
                             cx="24"
                             cy="24"
                             r="20"
-                            stroke="#3c4043"
+                            stroke="#e0e0e0"
                             strokeWidth="4"
                             fill="none"
                         />
@@ -42,7 +48,7 @@ export default function MeetingExitDark() {
                             cx="24"
                             cy="24"
                             r="20"
-                            stroke="#8ab4f8"
+                            stroke="#0ab39c"
                             strokeWidth="4"
                             fill="none"
                             strokeDasharray="126"
@@ -50,62 +56,56 @@ export default function MeetingExitDark() {
                             strokeLinecap="round"
                         />
                     </svg>
-                    <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-sm font-medium text-gray-200">
+                    <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-sm font-medium text-gray-900">
                         {timeLeft}
                     </span>
                 </div>
-                <span className="text-sm font-medium text-gray-300">Returning to home screen</span>
+                <span className="text-sm font-medium text-gray-600">Returning to home screen</span>
             </div>
 
-            {/* Main content */}
-            <div className="flex flex-col items-center justify-center min-h-screen">
-                <div className="w-full max-w-md space-y-8 -mt-20">
-                    <div className="text-center space-y-6">
-                        <h1 className="text-3xl font-medium text-gray-100">
-                            You left the meeting
-                        </h1>
-
-                        <div className="flex flex-wrap justify-center gap-3">
-                            {/* <Button
-                                variant="outline"
-                                className="text-blue-700 border-blue-300"
-                            >
-                                Rejoin
-                            </Button> */}
-                            <Button
-                                className="bg-blue-600 hover:bg-blue-700 text-white"
-                                onClick={() => window.location.reload()}
-                            >
-                                Return to home screen
-                            </Button>
-
-                        </div>
-
-                        <button className="text-blue-300 hover:underline text-sm">
-                            Submit feedback
-                        </button>
+         
+            <div className="flex flex-col items-center justify-center">
+                <div className="w-full max-w-md space-y-8 text-center">
+                  
+                    <img
+                        src="/ic_launcher.png"
+                        alt="Logo"
+                        className="mx-auto h-18 w-18 object-contain"
+                    />
+                    <h1 className="text-3xl font-medium text-gray-900">You left the meeting</h1>
+                    <div className="flex flex-wrap justify-center gap-3">
+                        <Button
+                            className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                            onClick={() => window.location.reload()}
+                        >
+                            Return to home screen
+                        </Button>
                     </div>
+                    <button className="text-emerald-600 hover:underline text-sm">
+                        Submit feedback
+                    </button>
 
-                    {/* Security info card */}
-                    <Card className="p-4 bg-gray-800 border-gray-700">
+                   
+                    <Card className="p-4 bg-gray-100 border-gray-300">
                         <div className="flex gap-4">
                             <div className="shrink-0">
-                                <div className="h-10 w-10 rounded-full bg-blue-900/50 flex items-center justify-center">
-                                    <Shield className="h-5 w-5 text-blue-300" />
+                                <div className="h-10 w-10 rounded-full bg-emerald-100 flex items-center justify-center">
+                                    <Shield className="h-5 w-5 text-emerald-600" />
                                 </div>
                             </div>
                             <div className="space-y-1">
-                                <h2 className="font-medium text-gray-100">Your meeting is safe</h2>
+                                <h2 className="font-medium text-gray-300">Your meeting is safe</h2>
                                 <p className="text-sm text-gray-400">
                                     No one can join a meeting unless invited or admitted by the host
                                 </p>
-                                <button className="text-blue-300 hover:underline text-sm">
+                                <button className="text-emerald-600 hover:underline text-sm">
                                     Learn more
                                 </button>
                             </div>
                         </div>
                     </Card>
                 </div>
+                <Footer />
             </div>
         </div>
     )

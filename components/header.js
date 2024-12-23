@@ -1,7 +1,7 @@
 const Header = () => (
     <div className="w-full bg-[#fbf0e3] p-3 flex items-center">
         <img
-            src="/favicon.ico"
+            src="/logo.png"
             alt="Favicon"
             className="w-9 h-9 mr-3"
         />
