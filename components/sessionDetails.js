@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   StreamVideo,
+  Call,
   StreamTheme,
   StreamCall,
   StreamVideoClient,
@@ -16,6 +17,7 @@ import { getmeetingLink } from '@/_actions/findMeetingId';
 import { userAttendance } from '@/_actions/userAttendance';
 import MeetingRoom from './meetingRoom';
 import MeetingSetup from './meetingSetup';
+import CustomLoader from './loader';
 
 const API_KEY = process.env.NEXT_PUBLIC_STREAM_API_KEY;
 
@@ -27,7 +29,7 @@ const SessionDetailPage = ({ sessionDetails }) => {
   const [call, setCall] = useState(null);
   const [client, setClient] = useState(null);
   const [showDetails, setShowDetails] = useState(true);
-  const [devicesOff, setDevicesOff] = useState(true)
+  const [devicesOff, setDevicesOff] = useState(true);
   const [sessionId, setSessionId] = useState(sessionDetails?.sessionId || generateRandomSessionId());
   const [meetingLink, setMeetingLink] = useState(null);
   const [waitingForMeeting, setWaitingForMeeting] = useState(false);
@@ -88,7 +90,7 @@ const SessionDetailPage = ({ sessionDetails }) => {
   }, [meetingLink, sessionDetails?.trainingId]);
 
   const handleMeetingClick = async () => {
-    console.log('Joining meeting with devices:', devicesOff ? 'off' : 'on')
+    console.log('Joining meeting with devices:', devicesOff ? 'off' : 'on');
     if (!API_KEY) {
       console.error('Stream API key is missing.');
       return;
@@ -126,7 +128,7 @@ const SessionDetailPage = ({ sessionDetails }) => {
   };
 
   const handleJoinMeetingClick = async () => {
-    console.log('Joining meeting with devices:', devicesOff ? 'off' : 'on')
+    console.log('Joining meeting with devices:', devicesOff ? 'off' : 'on');
     if (!meetingLink) {
       console.error('Meeting link is still missing.');
       setWaitingForMeeting(false);
@@ -169,47 +171,29 @@ const SessionDetailPage = ({ sessionDetails }) => {
     }
   };
 
-  if (!userDetails) return <p>Loading user details...</p>;
+  if (!userDetails) return <CustomLoader />;
 
   return (
-    <div>
+    <div className=" min-h-screen p-6"
+      style={{
+        background: 'linear-gradient(135deg, white, #0ab39c)',
+      }}>
       {showDetails && (
-        // <>
-        //   <div className="w-4/5 h-[500px] mx-auto border border-gray-300 mt-10 flex flex-col justify-center items-center text-center rounded-md">
-        //     <h3 className="text-xl font-bold mb-5">{userDetails?.fullName}</h3>
-        //   </div>
-
-        //   {meetingLink ? (
-        //     <div className="flex justify-center items-center mt-5">
-        //       <button 
-        //         onClick={handleJoinMeetingClick} 
-        //         className="bg-green-500 text-white py-2 px-6 rounded-md cursor-pointer"
-        //       >
-        //         Join Meeting
-        //       </button>
-        //     </div>
-        //   ) : userDetails?.admin === 'true' ? (
-        //     <div className="flex justify-center items-center mt-5">
-        //       <button 
-        //         onClick={handleMeetingClick} 
-        //         className="bg-blue-500 text-white py-2 px-6 rounded-md cursor-pointer"
-        //       >
-        //         Create Meeting
-        //       </button>
-        //     </div>
-        //   ) : (
-        //     <div className="flex justify-center items-center mt-5">Waiting for the admin to create the meeting...</div>
-        //   )}
-        // </>
         <MeetingSetup
           userDetails={userDetails}
           meetingLink={meetingLink}
           handleJoinMeetingClick={handleJoinMeetingClick}
           handleMeetingClick={handleMeetingClick}
+          buttonColor="#0ab39c"
         />
       )}
 
-      {waitingForMeeting && <div className='flex justify-center items-center mt-5'>Waiting for the meeting to start. Please wait...</div>}
+      {waitingForMeeting && (
+        <div className="flex justify-center items-center mt-5 text-black">
+          <CustomLoader />
+          Waiting for the meeting to start. Please wait...
+        </div>
+      )}
 
       {call && client && (
         <StreamVideo client={client}>
