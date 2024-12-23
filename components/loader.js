@@ -1,23 +1,16 @@
 import { LoaderCircle } from "lucide-react";
-
+ 
 const CustomLoader = () => {
   return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      justifyContent: 'center',
-      alignItems: 'center',
-      height: '100vh',
-      backgroundColor: '#ffffff',
-    }}>
-      <LoaderCircle 
-        size={50} 
-        color="#0ab39c" 
+    <div>
+      <LoaderCircle
+        size={50}
+        color="#0ab39c"
         style={{
-          animation: 'spin 1s linear infinite', 
+          animation: 'spin 1s linear infinite',
         }}
       />
-
+ 
       <style jsx>{`
         @keyframes spin {
           0% {
@@ -31,5 +24,5 @@ const CustomLoader = () => {
     </div>
   );
 };
-
+ 
 export default CustomLoader;

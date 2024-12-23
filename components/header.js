@@ -6,16 +6,16 @@ const Header = () => (
             className="w-9 h-9 mr-3"
         />
         <h1
-                    className="text-3xl font-bold flex-1 text-pretty"
-                    style={{
-                        background: "linear-gradient(to right, #0ab39c, rgb(78, 143, 248), red, yellow, green)",
-                        WebkitBackgroundClip: "text", 
-                        color: "transparent", 
-                        display: "inline-block", 
-                    }}
-                >
-                    Excelrs
-                </h1>
+            className="text-3xl font-bold flex-1 text-pretty"
+            style={{
+                background: "linear-gradient(to right, #0ab39c, rgb(78, 143, 248), red, yellow, green)",
+                WebkitBackgroundClip: "text",
+                color: "transparent",
+                display: "inline-block",
+            }}
+        >
+            Excelrs
+        </h1>
     </div>
 );
 
